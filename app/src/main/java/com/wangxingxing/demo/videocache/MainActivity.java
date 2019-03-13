@@ -15,6 +15,9 @@ import com.danikula.videocache.HttpProxyCacheServer;
 import java.io.File;
 import java.io.IOException;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final String TAG = "MainActivity";
@@ -26,11 +29,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnPlay;
     private Button btnPause;
     private Button btnReplay;
+    private Button btnIjk;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        System.loadLibrary("ijkffmpeg");
+        System.loadLibrary("ijkplayer");
+        System.loadLibrary("ijksdl");
 
         mCacheServerProxy = BaseApplication.getProxy(this);
         encryptAndDecryptByDES();
@@ -42,10 +50,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnPlay = findViewById(R.id.btnPlay);
         btnPause = findViewById(R.id.btnPause);
         btnReplay = findViewById(R.id.btnReplay);
+        btnIjk = findViewById(R.id.btnIjk);
 
         btnPlay.setOnClickListener(this);
         btnPause.setOnClickListener(this);
         btnReplay.setOnClickListener(this);
+        btnIjk.setOnClickListener(this);
     }
 
     private void initMediaPlayer() {
@@ -120,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnReplay:
                 rePlay();
                 break;
+            case R.id.btnIjk:
+                ijkPlay();
+                break;
         }
     }
 
@@ -150,5 +163,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String base64EnStr = EncodeUtils.base64Encode2String(dataRes.getBytes());
         Log.i(TAG, "Base64Encode=" + base64EnStr);
         Log.i(TAG, "Base64Decode=" + new String(EncodeUtils.base64Decode(base64EnStr)));
+    }
+
+    private void ijkPlay() {
+        String url = "https://streamoc.music.tc.qq.com/A0000045RzZ24AiYP4.ape?vkey=58A554A191BD09EF669A3BDE1EA51746548D2D3C4EE7AB4AD4493C997F0CE448240C4733126F480EE11A3D7E56DB7A161CD3471DF75CA8EA&guid=1761631760&uid=1008611&fromtag=8";
+        final IjkMediaPlayer mediaPlayer = new IjkMediaPlayer();
+        try {
+            mediaPlayer.setDataSource(url);
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(IMediaPlayer iMediaPlayer) {
+                    Log.d(TAG, "IjkPlayer---onPrepared");
+                    mediaPlayer.start();
+                }
+            });
+            mediaPlayer.setOnBufferingUpdateListener(new IMediaPlayer.OnBufferingUpdateListener() {
+                @Override
+                public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int i) {
+                    Log.d(TAG, "IjkPlayer---onBufferingUpdate：" + i);
+                }
+            });
+            mediaPlayer.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
+                    Log.e(TAG, String.format("IjkPlayer---onError: what=%d, extra=%d", i, i1));
+                    return false;
+                }
+            });
+            mediaPlayer.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(IMediaPlayer iMediaPlayer) {
+                    Log.d(TAG, "IjkPlayer---onCompletion: ");
+                    mediaPlayer.release();
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

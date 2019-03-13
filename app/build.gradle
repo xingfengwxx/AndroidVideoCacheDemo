@@ -9,6 +9,11 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
+
     }
     buildTypes {
         release {
@@ -16,6 +21,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+//    sourceSets { main { jniLibs.srcDirs = ['libs'] } }
 }
 
 dependencies {
@@ -28,4 +35,8 @@ dependencies {
 
     implementation project(':library')
     implementation 'com.blankj:utilcode:1.23.5'
+
+    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+
 }
