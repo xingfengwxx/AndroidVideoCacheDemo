@@ -62,6 +62,10 @@ final class HttpProxyCacheServerClients {
 
     public void unregisterCacheListener(CacheListener cacheListener) {
         listeners.remove(cacheListener);
+        //移除监听时，取消缓存任务
+        if (proxyCache != null) {
+            proxyCache.shutdown();
+        }
     }
 
     public void shutdown() {
