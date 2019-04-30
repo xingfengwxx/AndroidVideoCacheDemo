@@ -68,6 +68,9 @@ public class HttpProxyCacheServer {
     private final Config config;
     private final Pinger pinger;
 
+    //用于取消上一个缓存任务
+    private HttpProxyCacheServerClients mLastClient;
+
     public HttpProxyCacheServer(Context context) {
         this(new Builder(context).buildConfig());
     }
@@ -189,6 +192,14 @@ public class HttpProxyCacheServer {
         }
     }
 
+    public void shutdownLast() {
+        synchronized (clientsLock) {
+            if (mLastClient != null) {
+                mLastClient.shutdown();
+            }
+        }
+    }
+
     private boolean isAlive() {
         return pinger.ping(3, 70);   // 70+140+280=max~500ms
     }
@@ -245,6 +256,7 @@ public class HttpProxyCacheServer {
                 pinger.responseToPing(socket);
             } else {
                 HttpProxyCacheServerClients clients = getClients(url);
+                mLastClient = clients;
                 clients.processRequest(request, socket);
             }
         } catch (SocketException e) {
